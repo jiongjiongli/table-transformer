@@ -12,7 +12,11 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-sys.path.append("../detr")
+from pathlib import Path
+import_script_path = (Path(__file__).resolve().parent / "../detr").resolve()
+print(f"Importing {import_script_path}")
+sys.path.append(str(import_script_path))
+
 from engine import evaluate, train_one_epoch
 from models import build_model
 import util.misc as utils
@@ -21,6 +25,8 @@ import datasets.transforms as R
 import table_datasets as TD
 from table_datasets import PDFTablesDataset
 from eval import eval_coco
+from torch.utils.tensorboard import SummaryWriter
+from types import SimpleNamespace
 
 
 def get_args():
@@ -48,7 +54,7 @@ def get_args():
                         default='')
     parser.add_argument('--debug_save_dir',
                         help='Filepath to save visualizations',
-                        default='debug')                        
+                        default='debug')
     parser.add_argument('--table_words_dir',
                         help="Folder containg the bboxes of table words")
     parser.add_argument('--mode',
@@ -98,7 +104,7 @@ def get_class_map(data_type):
 
 def get_data(args):
     """
-    Based on the args, retrieves the necessary data to perform training, 
+    Based on the args, retrieves the necessary data to perform training,
     evaluation or GriTS metric evaluation
     """
     # Datasets
@@ -260,8 +266,8 @@ def train(args, model, criterion, postprocessors, device):
         else:
             print("*** ERROR: Optimizer state of saved checkpoint not found. "
                   "To resume training with new initialized values add the --load_weights_only flag.")
-            raise Exception("ERROR: Optimizer state of saved checkpoint not found. Must add --load_weights_only flag to resume training without.")          
-        
+            raise Exception("ERROR: Optimizer state of saved checkpoint not found. Must add --load_weights_only flag to resume training without.")
+
         if not args.load_weights_only and 'epoch' in checkpoint:
             args.start_epoch = checkpoint['epoch'] + 1
         elif args.load_weights_only:
@@ -294,6 +300,15 @@ def train(args, model, criterion, postprocessors, device):
             args.start_epoch, args.epochs
         ))
 
+    tensorboard_logs_directory = os.path.join(output_directory, 'tensorboard_logs')
+    print("tensorboard logs directory: ", tensorboard_logs_directory)
+    if not os.path.exists(tensorboard_logs_directory):
+        os.makedirs(tensorboard_logs_directory)
+    summary_writer=SummaryWriter(tensorboard_logs_directory)
+    writer = SimpleNamespace(summary_writer=summary_writer,
+                             global_step=0,
+                             losses=[])
+
     print("Start training")
     start_time = datetime.now()
     for epoch in range(args.start_epoch, args.epochs):
@@ -309,7 +324,8 @@ def train(args, model, criterion, postprocessors, device):
             epoch,
             args.clip_max_norm,
             max_batches_per_epoch=max_batches_per_epoch,
-            print_freq=1000)
+            print_freq=1000,
+            writer=writer)
         print("Epoch completed in ", datetime.now() - epoch_timing)
 
         lr_scheduler.step()
@@ -324,6 +340,9 @@ def train(args, model, criterion, postprocessors, device):
                      pubmed_stats['coco_eval_bbox'][0],
                      pubmed_stats['coco_eval_bbox'][8]))
 
+        summary_writer = writer.summary_writer
+        summary_writer.add_scalar('AP/val', pubmed_stats['coco_eval_bbox'][0], epoch)
+        summary_writer.add_scalar('AR/val', pubmed_stats['coco_eval_bbox'][8], epoch)
         # Save current model training progress
         torch.save({'epoch': epoch,
                     'model_state_dict': model.state_dict(),
@@ -335,6 +354,7 @@ def train(args, model, criterion, postprocessors, device):
             model_save_path_epoch = os.path.join(output_directory, 'model_' + str(epoch+1) + '.pth')
             torch.save(model.state_dict(), model_save_path_epoch)
 
+    summary_writer.close()
     print('Total training time: ', datetime.now() - start_time)
 
 

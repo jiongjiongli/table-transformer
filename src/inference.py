@@ -21,7 +21,10 @@ from matplotlib.patches import Patch
 
 from main import get_model
 import postprocess
-sys.path.append("../detr")
+from pathlib import Path
+import_script_path = (Path(__file__).resolve().parent / "../detr").resolve()
+print(f"Importing {import_script_path}")
+sys.path.append(str(import_script_path))
 from models import build_model
 
 class MaxResize(object):
@@ -33,7 +36,7 @@ class MaxResize(object):
         current_max_size = max(width, height)
         scale = self.max_size / current_max_size
         resized_image = image.resize((int(round(scale*width)), int(round(scale*height))))
-        
+
         return resized_image
 
 detection_transform = transforms.Compose([
@@ -96,7 +99,7 @@ def get_args():
     parser.add_argument('--structure_model_path', help="The path to the structure model")
     parser.add_argument('--detection_config_path',
                         help="Filepath to the detection model config file")
-    parser.add_argument('--detection_model_path', help="The path to the detection model")                       
+    parser.add_argument('--detection_model_path', help="The path to the detection model")
     parser.add_argument('--detection_device', default="cuda")
     parser.add_argument('--structure_device', default="cuda")
     parser.add_argument('--crops', '-p', action='store_true',
@@ -138,11 +141,11 @@ def iob(bbox1, bbox2):
     Compute the intersection area over box area, for bbox1.
     """
     intersection = Rect(bbox1).intersect(bbox2)
-    
+
     bbox1_area = Rect(bbox1).get_area()
     if bbox1_area > 0:
         return intersection.get_area() / bbox1_area
-    
+
     return 0
 
 
@@ -154,7 +157,7 @@ def align_headers(headers, rows):
     For now, we are not supporting tables with multiple headers, so we need to
     eliminate anything besides the top-most header.
     """
-    
+
     aligned_headers = []
 
     for row in rows:
@@ -306,7 +309,7 @@ def objects_to_structures(objects, tokens, class_thresholds):
     for table in tables:
         table_objects = [obj for obj in objects if iob(obj['bbox'], table['bbox']) >= 0.5]
         table_tokens = [token for token in tokens if iob(token['bbox'], table['bbox']) >= 0.5]
-        
+
         structure = {}
 
         columns = [obj for obj in table_objects if obj['label'] == 'table column']
@@ -334,7 +337,7 @@ def objects_to_structures(objects, tokens, class_thresholds):
         row_rect = Rect()
         for obj in rows:
             row_rect.include_rect(obj['bbox'])
-        column_rect = Rect() 
+        column_rect = Rect()
         for obj in columns:
             column_rect.include_rect(obj['bbox'])
         table['row_column_bbox'] = [column_rect[0], row_rect[1], column_rect[2], row_rect[3]]
@@ -454,10 +457,10 @@ def structure_to_cells(table_structure, tokens):
     for cell, cell_span_nums in zip(cells, span_nums_by_cell):
         cell_spans = [tokens[num] for num in cell_span_nums]
         # TODO: Refine how text is extracted; should be character-based, not span-based;
-        # but need to associate 
+        # but need to associate
         cell['cell text'] = postprocess.extract_text_from_spans(cell_spans, remove_integer_superscripts=False)
         cell['spans'] = cell_spans
-        
+
     # Adjust the row, column, and cell bounding boxes to reflect the extracted text
     num_rows = len(rows)
     rows = postprocess.sort_objects_top_to_bottom(rows)
@@ -571,7 +574,7 @@ def visualize_detected_tables(img, det_tables, out_path):
     plt.imshow(img, interpolation="lanczos")
     plt.gcf().set_size_inches(20, 20)
     ax = plt.gca()
-    
+
     for det_table in det_tables:
         bbox = det_table['bbox']
 
@@ -589,14 +592,14 @@ def visualize_detected_tables(img, det_tables, out_path):
             hatch='//////'
         else:
             continue
- 
-        rect = patches.Rectangle(bbox[:2], bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=linewidth, 
+
+        rect = patches.Rectangle(bbox[:2], bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=linewidth,
                                     edgecolor='none',facecolor=facecolor, alpha=0.1)
         ax.add_patch(rect)
-        rect = patches.Rectangle(bbox[:2], bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=linewidth, 
+        rect = patches.Rectangle(bbox[:2], bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=linewidth,
                                     edgecolor=edgecolor,facecolor='none',linestyle='-', alpha=alpha)
         ax.add_patch(rect)
-        rect = patches.Rectangle(bbox[:2], bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=0, 
+        rect = patches.Rectangle(bbox[:2], bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=0,
                                     edgecolor=edgecolor,facecolor='none',linestyle='-', hatch=hatch, alpha=0.2)
         ax.add_patch(rect)
 
@@ -608,7 +611,7 @@ def visualize_detected_tables(img, det_tables, out_path):
                         Patch(facecolor=(0.95, 0.6, 0.1), edgecolor=(0.95, 0.6, 0.1),
                                 label='Table (rotated)', hatch='//////', alpha=0.3)]
     plt.legend(handles=legend_elements, bbox_to_anchor=(0.5, -0.02), loc='upper center', borderaxespad=0,
-                    fontsize=10, ncol=2)  
+                    fontsize=10, ncol=2)
     plt.gcf().set_size_inches(10, 10)
     plt.axis('off')
     plt.savefig(out_path, bbox_inches='tight', dpi=150)
@@ -620,7 +623,7 @@ def visualize_cells(img, cells, out_path):
     plt.imshow(img, interpolation="lanczos")
     plt.gcf().set_size_inches(20, 20)
     ax = plt.gca()
-    
+
     for cell in cells:
         bbox = cell['bbox']
 
@@ -642,14 +645,14 @@ def visualize_cells(img, cells, out_path):
             alpha = 0.3
             linewidth = 2
             hatch='\\\\\\\\\\\\'
- 
-        rect = patches.Rectangle(bbox[:2], bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=linewidth, 
+
+        rect = patches.Rectangle(bbox[:2], bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=linewidth,
                                     edgecolor='none',facecolor=facecolor, alpha=0.1)
         ax.add_patch(rect)
-        rect = patches.Rectangle(bbox[:2], bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=linewidth, 
+        rect = patches.Rectangle(bbox[:2], bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=linewidth,
                                     edgecolor=edgecolor,facecolor='none',linestyle='-', alpha=alpha)
         ax.add_patch(rect)
-        rect = patches.Rectangle(bbox[:2], bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=0, 
+        rect = patches.Rectangle(bbox[:2], bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=0,
                                     edgecolor=edgecolor,facecolor='none',linestyle='-', hatch=hatch, alpha=0.2)
         ax.add_patch(rect)
 
@@ -663,7 +666,7 @@ def visualize_cells(img, cells, out_path):
                         Patch(facecolor=(0.95, 0.6, 0.1), edgecolor=(0.95, 0.6, 0.1),
                                 label='Projected row header cell', hatch='//////', alpha=0.3)]
     plt.legend(handles=legend_elements, bbox_to_anchor=(0.5, -0.02), loc='upper center', borderaxespad=0,
-                    fontsize=10, ncol=3)  
+                    fontsize=10, ncol=3)
     plt.gcf().set_size_inches(10, 10)
     plt.axis('off')
     plt.savefig(out_path, bbox_inches='tight', dpi=150)
@@ -777,7 +780,7 @@ class TableExtractionPipeline(object):
         if not (out_cells or out_html or out_csv):
             return out_formats
 
-        # Further process the detected objects so they correspond to a consistent table 
+        # Further process the detected objects so they correspond to a consistent table
         tables_structure = objects_to_structures(objects, tokens, self.str_class_thresholds)
 
         # Enumerate all table cells: grid cells and spanning cells
@@ -792,7 +795,7 @@ class TableExtractionPipeline(object):
             tables_htmls = [cells_to_html(cells) for cells in tables_cells]
             out_formats['html'] = tables_htmls
 
-        # Convert cells to CSV, including flattening multi-row column headers to a single row 
+        # Convert cells to CSV, including flattening multi-row column headers to a single row
         if out_csv:
             tables_csvs = [cells_to_csv(cells) for cells in tables_cells]
             out_formats['csv'] = tables_csvs
@@ -857,7 +860,7 @@ def output_result(key, val, args, img, img_file):
                     f.write(elem)
                 if args.verbose:
                     print(elem)
-                        
+
 
 def main():
     args = get_args()
@@ -871,9 +874,9 @@ def main():
     print("Creating inference pipeline")
     pipe = TableExtractionPipeline(det_device=args.detection_device,
                                    str_device=args.structure_device,
-                                   det_config_path=args.detection_config_path, 
+                                   det_config_path=args.detection_config_path,
                                    det_model_path=args.detection_model_path,
-                                   str_config_path=args.structure_config_path, 
+                                   str_config_path=args.structure_config_path,
                                    str_model_path=args.structure_model_path)
 
     # Load images
@@ -932,8 +935,14 @@ def main():
 
             for table_idx, extracted_table in enumerate(extracted_tables):
                 for key, val in extracted_table.items():
-                    output_result(key, val, args, extracted_table['image'],
-                                  img_file.replace('.jpg', '_{}.jpg'.format(table_idx)))
+
+                    try:
+                        output_result(key, val, args, extracted_table['image'],
+                                      img_file.replace('.jpg', '_{}.jpg'.format(table_idx)))
+                    except Exception as e:
+                        import traceback
+                        error_details = traceback.format_exc()
+                        print(f"An error occurred when processing {img_file}: {e} {error_details}")
 
 if __name__ == "__main__":
     main()
