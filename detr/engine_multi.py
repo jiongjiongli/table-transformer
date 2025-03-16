@@ -17,12 +17,12 @@ from datasets.panoptic_eval import PanopticEvaluator
 def train_one_epoch(model_list, criterion_list,
                     data_loader_list, optimizer: torch.optim.Optimizer,
                     device: torch.device, epoch: int, max_norm: float = 0,
-                    max_batches_per_epoch: int = None, print_freq=100):
+                    max_batches_per_epoch: int = None, print_freq=100, writer=None):
     for model in model_list:
         model.train()
     for criterion in criterion_list:
         criterion.train()
-        
+
     #metric_loggers = []
     #headers = []
     #for model in model_list:
@@ -30,10 +30,10 @@ def train_one_epoch(model_list, criterion_list,
     metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
     metric_logger.add_meter('class_error', utils.SmoothedValue(window_size=1, fmt='{value:.2f}'))
     header = 'Epoch: [{}]'.format(epoch)
-        
+
     #    metric_loggers.append(metric_logger)
     #    headers.append(header)
-    
+
     batch_count = 0
     while not max_batches_per_epoch is None and batch_count <= max_batches_per_epoch:
         for model, criterion, data_loader in zip(model_list, criterion_list, data_loader_list):
