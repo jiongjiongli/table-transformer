@@ -17,14 +17,14 @@ from datasets.panoptic_eval import PanopticEvaluator
 def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
                     data_loader: Iterable, optimizer: torch.optim.Optimizer,
                     device: torch.device, epoch: int, max_norm: float = 0,
-                    max_batches_per_epoch: int = None, print_freq=100):
+                    max_batches_per_epoch: int = None, print_freq=100, writer=None):
     model.train()
     criterion.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
     metric_logger.add_meter('class_error', utils.SmoothedValue(window_size=1, fmt='{value:.2f}'))
     header = 'Epoch: [{}]'.format(epoch)
-    
+
     batch_count = 0
     for samples, targets in metric_logger.log_every(data_loader, print_freq, header):
         batch_count += 1
@@ -62,6 +62,29 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
         metric_logger.update(loss=loss_value, **loss_dict_reduced_scaled, **loss_dict_reduced_unscaled)
         metric_logger.update(class_error=loss_dict_reduced['class_error'])
         metric_logger.update(lr=optimizer.param_groups[0]["lr"])
+        global_step = None
+
+        if writer:
+            summary_writer = writer.summary_writer
+            # summary_writer.add_scalars('Loss/train',
+            #                    dict(loss=loss_value, **loss_dict_reduced_scaled, **loss_dict_reduced_unscaled),
+            #                    global_step=writer.global_step)
+            writer.losses.append(loss_value)
+            avg_loss = sum(writer.losses) / len(writer.losses)
+            summary_writer.add_scalar('Loss/train',
+                                      loss_value,
+                                      global_step=writer.global_step)
+            summary_writer.add_scalar('Average Loss/train',
+                                      avg_loss,
+                                      global_step=writer.global_step)
+            summary_writer.add_scalar('Class Error/train',
+                              loss_dict_reduced['class_error'],
+                              global_step=writer.global_step)
+            summary_writer.add_scalar('Learning Rate/train',
+                              optimizer.param_groups[0]["lr"],
+                              global_step=writer.global_step)
+            writer.global_step += 1
+
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
     print("Averaged stats:", metric_logger)
