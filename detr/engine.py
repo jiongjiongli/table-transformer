@@ -66,9 +66,17 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
 
         if writer:
             summary_writer = writer.summary_writer
-            summary_writer.add_scalars('Loss/train',
-                               dict(loss=loss_value, **loss_dict_reduced_scaled, **loss_dict_reduced_unscaled),
-                               global_step=writer.global_step)
+            # summary_writer.add_scalars('Loss/train',
+            #                    dict(loss=loss_value, **loss_dict_reduced_scaled, **loss_dict_reduced_unscaled),
+            #                    global_step=writer.global_step)
+            writer.losses.append(loss_value)
+            avg_loss = sum(writer.losses) / len(writer.losses)
+            summary_writer.add_scalar('Loss/train',
+                                      loss_value,
+                                      global_step=writer.global_step)
+            summary_writer.add_scalar('Average Loss/train',
+                                      avg_loss,
+                                      global_step=writer.global_step)
             summary_writer.add_scalar('Class Error/train',
                               loss_dict_reduced['class_error'],
                               global_step=writer.global_step)

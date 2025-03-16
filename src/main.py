@@ -302,7 +302,8 @@ def train(args, model, criterion, postprocessors, device):
         os.makedirs(tensorboard_logs_directory)
     summary_writer=SummaryWriter(tensorboard_logs_directory)
     writer = SimpleNamespace(summary_writer=summary_writer,
-                             global_step=0)
+                             global_step=0,
+                             losses=[])
 
     print("Start training")
     start_time = datetime.now()
