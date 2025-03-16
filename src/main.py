@@ -297,7 +297,7 @@ def train(args, model, criterion, postprocessors, device):
         ))
 
     tensorboard_logs_directory = os.path.join(output_directory, 'tensorboard_logs')
-    print("Output directory: ", tensorboard_logs_directory)
+    print("tensorboard logs directory: ", tensorboard_logs_directory)
     if not os.path.exists(tensorboard_logs_directory):
         os.makedirs(tensorboard_logs_directory)
     summary_writer=SummaryWriter(tensorboard_logs_directory)
