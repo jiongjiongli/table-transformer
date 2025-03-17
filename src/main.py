@@ -337,8 +337,8 @@ def train(args, model, criterion, postprocessors, device):
                      pubmed_stats['coco_eval_bbox'][8]))
 
         summary_writer = writer.summary_writer
-        summary_writer.add_scalar('AP/test', pubmed_stats['coco_eval_bbox'][0], epoch)
-        summary_writer.add_scalar('AR/test', pubmed_stats['coco_eval_bbox'][8], epoch)
+        summary_writer.add_scalar('AP/val', pubmed_stats['coco_eval_bbox'][0], epoch)
+        summary_writer.add_scalar('AR/val', pubmed_stats['coco_eval_bbox'][8], epoch)
         # Save current model training progress
         torch.save({'epoch': epoch,
                     'model_state_dict': model.state_dict(),
