@@ -60,8 +60,8 @@ def generate_ocr_results(data_dir_path, output_dir_path):
 
         for image_file_path in tqdm(image_file_paths):
             words = tesseract_ocr(str(image_file_path))
-
-            ocr_results_file_path = ocr_results_dir_path / image_file_path.with_suffix(".json").name
+            ocr_results_file_name = f"{image_file_path.stem}_words.json"
+            ocr_results_file_path = ocr_results_dir_path / ocr_results_file_name
             ocr_results_file_path.parent.mkdir(parents=True, exist_ok=True)
 
             with open(ocr_results_file_path, "w") as file_stream:
