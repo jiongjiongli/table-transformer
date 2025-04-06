@@ -48,7 +48,7 @@ def tesseract_ocr(image_file_path):
     return words
 
 
-def generate_ocr_words(data_dir_path, output_dir_path):
+def generate_ocr_results(data_dir_path, output_dir_path):
     splits = ["train", "val", "test"]
 
     for split in splits:
@@ -62,6 +62,7 @@ def generate_ocr_words(data_dir_path, output_dir_path):
             words = tesseract_ocr(str(image_file_path))
 
             ocr_results_file_path = ocr_results_dir_path / image_file_path.with_suffix(".json").name
+            ocr_results_file_path.parent.mkdir(parents=True, exist_ok=True)
 
             with open(ocr_results_file_path, "w") as file_stream:
                 json.dump(words, file_stream, indent=4)
@@ -85,7 +86,7 @@ def main():
     data_dir_path = Path(args.data_dir)
     output_dir_path = Path(args.output_dir)
 
-    generate_ocr_words(data_dir_path, output_dir_path)
+    generate_ocr_results(data_dir_path, output_dir_path)
     print("Completed!")
 
 
