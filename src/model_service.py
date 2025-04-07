@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 import sys
 from PIL import Image
+import zipfile
+
 from pytesseract import pytesseract
 
 import_script_path = (Path(__file__).resolve().parent / "../scripts").resolve()
@@ -74,8 +76,15 @@ class TableExtractModel:
                                        str_model_path=args.structure_model_path)
         return pipe
 
+    def rm_files(self, file_paths):
+        for file_path in file_paths:
+            file_path.unlink()
+
     def process(self, image_file_path):
         args = self.args
+
+        prev_output_file_paths = list(Path(args.out_dir).glob(f"{image_file_path.stem}*.*"))
+        self.rm_files(prev_output_file_paths)
 
         img = Image.open(image_file_path)
         print("Image loaded.")
@@ -145,3 +154,21 @@ class TableExtractModel:
                         error_details = traceback.format_exc()
                         print(f"An error occurred when processing {image_file_path}: {e} {error_details}")
                         raise
+
+        output_file_paths = list(Path(args.out_dir).glob(f"{image_file_path.stem}*.*"))
+        print(f"output_file_paths: {output_file_paths}")
+
+        output_file_path = Path(args.out_dir) / "zips" / f"download_{image_file_path.stem}.zip"
+        output_file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if output_file_path.exists():
+            output_file_path.unlink()
+
+        print(f"output_file_path: {output_file_path}")
+
+        with zipfile.ZipFile(output_file_path, 'w') as myzip:
+            for output_file_path in output_file_paths:
+                myzip.write(str(output_file_path),
+                            arcname=output_file_path.stem)
+
+        return output_file_path
