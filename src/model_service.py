@@ -85,7 +85,7 @@ class TableExtractModel:
         if not args.words_dir is None:
             tokens_path = os.path.join(args.words_dir, image_file_path.replace(".jpg", "_words.json"))
 
-            tokens_path.parent.mkdir(parents=True, exist_ok=True)
+            Path(tokens_path).parent.mkdir(parents=True, exist_ok=True)
 
             with open(tokens_path, "w") as file_stream:
                 json.dump(tokens, file_stream, indent=4)
