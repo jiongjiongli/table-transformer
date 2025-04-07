@@ -83,7 +83,7 @@ class TableExtractModel:
     def process(self, image_file_path):
         args = self.args
 
-        prev_output_file_paths = list(Path(args.out_dir).glob(f"{image_file_path.stem}*.*"))
+        prev_output_file_paths = list(Path(args.out_dir).glob(f"{Path(image_file_path).stem}*.*"))
         self.rm_files(prev_output_file_paths)
 
         img = Image.open(image_file_path)
@@ -155,10 +155,10 @@ class TableExtractModel:
                         print(f"An error occurred when processing {image_file_path}: {e} {error_details}")
                         raise
 
-        output_file_paths = list(Path(args.out_dir).glob(f"{image_file_path.stem}*.*"))
+        output_file_paths = list(Path(args.out_dir).glob(f"{Path(image_file_path).stem}*.*"))
         print(f"output_file_paths: {output_file_paths}")
 
-        output_file_path = Path(args.out_dir) / "zips" / f"download_{image_file_path.stem}.zip"
+        output_file_path = Path(args.out_dir) / "zips" / f"download_{Path(image_file_path).stem}.zip"
         output_file_path.parent.mkdir(parents=True, exist_ok=True)
 
         if output_file_path.exists():
