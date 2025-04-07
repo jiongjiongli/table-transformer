@@ -5,8 +5,8 @@ from pathlib import Path
 import sys
 from PIL import Image
 
-import_scripts_path = Path(__file__).resolve().parent / "../scripts"
-print(f"Importing {import_scripts_path}...")
+import_scripts_path = (Path(__file__).resolve().parent / "../scripts").resolve()
+print(f"Importing {import_scripts_path}")
 sys.path.append(str(import_scripts_path))
 
 from generate_ocr_words import tesseract_ocr
