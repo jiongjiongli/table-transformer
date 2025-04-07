@@ -168,7 +168,8 @@ class TableExtractModel:
 
         with zipfile.ZipFile(zip_file_path, 'w') as myzip:
             for output_file_path in output_file_paths:
+                arcname = str(Path(zip_file_path.stem) / output_file_path.name)
                 myzip.write(str(output_file_path),
-                            arcname=zip_file_path.stem)
+                            arcname=arcname)
 
         return zip_file_path
