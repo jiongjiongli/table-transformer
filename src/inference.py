@@ -21,7 +21,10 @@ from matplotlib.patches import Patch
 
 from main import get_model
 import postprocess
-sys.path.append("../detr")
+from pathlib import Path
+import_script_path = (Path(__file__).resolve().parent / "../detr").resolve()
+print(f"Importing {import_script_path}")
+sys.path.append(str(import_script_path))
 from models import build_model
 
 class MaxResize(object):

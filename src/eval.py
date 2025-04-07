@@ -21,7 +21,11 @@ import matplotlib.patches as patches
 from fitz import Rect
 from PIL import Image
 
-sys.path.append("../detr")
+from pathlib import Path
+import_script_path = (Path(__file__).resolve().parent / "../detr").resolve()
+print(f"Importing {import_script_path}")
+sys.path.append(str(import_script_path))
+
 import util.misc as utils
 from datasets.coco_eval import CocoEvaluator
 import postprocess
@@ -59,9 +63,9 @@ def objects_to_cells(bboxes, labels, scores, page_tokens, structure_class_names,
     table_objects = []
     for bbox, score, label in zip(bboxes, scores, labels):
         table_objects.append({'bbox': bbox, 'score': score, 'label': label})
-        
-    table = {'objects': table_objects, 'page_num': 0} 
-    
+
+    table = {'objects': table_objects, 'page_num': 0}
+
     table_class_objects = [obj for obj in table_objects if obj['label'] == structure_class_map['table']]
     if len(table_class_objects) > 1:
         table_class_objects = sorted(table_class_objects, key=lambda x: x['score'], reverse=True)
@@ -69,14 +73,14 @@ def objects_to_cells(bboxes, labels, scores, page_tokens, structure_class_names,
         table_bbox = list(table_class_objects[0]['bbox'])
     except:
         table_bbox = (0,0,1000,1000)
-    
+
     tokens_in_table = [token for token in page_tokens if postprocess.iob(token['bbox'], table_bbox) >= 0.5]
-    
+
     # Determine the table cell structure from the objects
     table_structures, cells, confidence_score = postprocess.objects_to_cells(table, table_objects, tokens_in_table,
                                                                     structure_class_names,
                                                                     structure_class_thresholds)
-    
+
     return table_structures, cells, confidence_score
 
 
@@ -376,7 +380,7 @@ def get_bbox_decorations(data_type, label):
         if data_type == 'detection':
             return 'brown', 0.05, 3, '//'
         else:
-            return 'brown', 0, 3, None 
+            return 'brown', 0, 3, None
     elif label == 1:
         return 'red', 0.15, 2, None
     elif label == 2:
@@ -387,7 +391,7 @@ def get_bbox_decorations(data_type, label):
         return 'cyan', 0.2, 4, '//'
     elif label == 5:
         return 'green', 0.2, 4, '\\\\'
-    
+
     return 'gray', 0, 0, None
 
 
@@ -527,7 +531,7 @@ def visualize(args, target, pred_logits, pred_bboxes):
                                      linewidth=linewidth,
                                      edgecolor=color,facecolor='none',
                                      linestyle="--")
-            ax.add_patch(rect) 
+            ax.add_patch(rect)
 
     fig.set_size_inches((15, 15))
     plt.axis('off')
@@ -554,16 +558,16 @@ def visualize(args, target, pred_logits, pred_bboxes):
                 alpha = 0.3
             else:
                 alpha = 0.125
-            rect = patches.Rectangle(bbox[:2], bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=1, 
+            rect = patches.Rectangle(bbox[:2], bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=1,
                                     edgecolor='none',facecolor="magenta", alpha=alpha)
             ax.add_patch(rect)
-            rect = patches.Rectangle(bbox[:2], bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=1, 
+            rect = patches.Rectangle(bbox[:2], bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=1,
                                     edgecolor="magenta",facecolor='none',linestyle="--",
                                     alpha=0.08, hatch='///')
             ax.add_patch(rect)
-            rect = patches.Rectangle(bbox[:2], bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=1, 
+            rect = patches.Rectangle(bbox[:2], bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=1,
                                     edgecolor="magenta",facecolor='none',linestyle="--")
-            ax.add_patch(rect) 
+            ax.add_patch(rect)
 
         fig.set_size_inches((15, 15))
         plt.axis('off')
@@ -590,7 +594,7 @@ def evaluate(args, model, criterion, postprocessors, data_loader, base_ds, devic
         pred_logits_collection = []
         pred_bboxes_collection = []
         targets_collection = []
-        
+
     num_batches = len(data_loader)
     print_every = max(args.eval_step, int(math.ceil(num_batches / 100)))
     batch_num = 0

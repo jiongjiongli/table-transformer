@@ -12,7 +12,11 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-sys.path.append("../detr")
+from pathlib import Path
+import_script_path = (Path(__file__).resolve().parent / "../detr").resolve()
+print(f"Importing {import_script_path}")
+sys.path.append(str(import_script_path))
+
 from engine import evaluate, train_one_epoch
 from models import build_model
 import util.misc as utils
