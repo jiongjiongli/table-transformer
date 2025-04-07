@@ -158,17 +158,17 @@ class TableExtractModel:
         output_file_paths = list(Path(args.out_dir).glob(f"{Path(image_file_path).stem}*.*"))
         print(f"output_file_paths: {output_file_paths}")
 
-        output_file_path = Path(args.out_dir) / "zips" / f"download_{Path(image_file_path).stem}.zip"
-        output_file_path.parent.mkdir(parents=True, exist_ok=True)
+        zip_file_path = Path(args.out_dir) / "zips" / f"download_{Path(image_file_path).stem}.zip"
+        zip_file_path.parent.mkdir(parents=True, exist_ok=True)
 
-        if output_file_path.exists():
-            output_file_path.unlink()
+        if zip_file_path.exists():
+            zip_file_path.unlink()
 
-        print(f"output_file_path: {output_file_path}")
+        print(f"zip_file_path: {zip_file_path}")
 
-        with zipfile.ZipFile(output_file_path, 'w') as myzip:
+        with zipfile.ZipFile(zip_file_path, 'w') as myzip:
             for output_file_path in output_file_paths:
                 myzip.write(str(output_file_path),
-                            arcname=output_file_path.stem)
+                            arcname=zip_file_path.stem)
 
-        return output_file_path
+        return zip_file_path
