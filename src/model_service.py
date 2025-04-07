@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import sys
 from PIL import Image
+from pytesseract import pytesseract
 
 import_script_path = (Path(__file__).resolve().parent / "../scripts").resolve()
 print(f"Importing {import_script_path}")
@@ -50,6 +51,9 @@ def get_args(input_args):
     parser.add_argument('--crop_padding', type=int, default=10,
                         help="The amount of padding to add around a detected table when cropping.")
 
+    parser.add_argument('--tesseract_cmd',
+                        help="Tesseract command path")
+
     return parser.parse_args(input_args)
 
 class TableExtractModel:
@@ -60,6 +64,7 @@ class TableExtractModel:
     def load_model(self):
         args = self.args
 
+        pytesseract.tesseract_cmd = args.tesseract_cmd
         print("Creating inference pipeline")
         pipe = TableExtractionPipeline(det_device=args.detection_device,
                                        str_device=args.structure_device,
