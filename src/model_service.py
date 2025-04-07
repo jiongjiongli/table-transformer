@@ -81,9 +81,10 @@ class TableExtractModel:
         print("Image loaded.")
 
         tokens = tesseract_ocr(image_file_path)
+        image_file_name = Path(image_file_path).name
 
         if not args.words_dir is None:
-            tokens_path = os.path.join(args.words_dir, image_file_path.replace(".jpg", "_words.json"))
+            tokens_path = os.path.join(args.words_dir, image_file_name.replace(".jpg", "_words.json"))
 
             Path(tokens_path).parent.mkdir(parents=True, exist_ok=True)
 
@@ -118,14 +119,14 @@ class TableExtractModel:
             print("Table(s) recognized.")
 
             for key, val in extracted_table.items():
-                output_result(key, val, args, img, image_file_path)
+                output_result(key, val, args, img, image_file_name)
 
         if args.mode == 'detect':
             detected_tables = self.pipe.detect(img, tokens, out_objects=args.objects, out_crops=args.crops)
             print("Table(s) detected.")
 
             for key, val in detected_tables.items():
-                output_result(key, val, args, img, image_file_path)
+                output_result(key, val, args, img, image_file_name)
 
         if args.mode == 'extract':
             extracted_tables = self.pipe.extract(img, tokens, out_objects=args.objects, out_cells=args.csv,
@@ -138,7 +139,7 @@ class TableExtractModel:
 
                     try:
                         output_result(key, val, args, extracted_table['image'],
-                                      image_file_path.replace('.jpg', '_{}.jpg'.format(table_idx)))
+                                      image_file_name.replace('.jpg', '_{}.jpg'.format(table_idx)))
                     except Exception as e:
                         import traceback
                         error_details = traceback.format_exc()
