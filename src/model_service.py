@@ -83,6 +83,8 @@ class TableExtractModel:
     def process(self, image_file_path):
         args = self.args
 
+        print(f"args: {args}")
+
         prev_output_file_paths = list(Path(args.out_dir).glob(f"{Path(image_file_path).stem}*.*"))
         self.rm_files(prev_output_file_paths)
 
@@ -156,7 +158,7 @@ class TableExtractModel:
                         raise
 
         output_file_paths = list(Path(args.out_dir).glob(f"{Path(image_file_path).stem}*.*"))
-        print(f"output_file_paths: {output_file_paths}")
+        print(f"output_file_paths: {[str(output_file_path) for output_file_path in output_file_paths]}")
 
         zip_file_path = Path(args.out_dir) / "zips" / f"download_{Path(image_file_path).stem}.zip"
         zip_file_path.parent.mkdir(parents=True, exist_ok=True)
