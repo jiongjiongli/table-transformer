@@ -87,6 +87,8 @@ class TableExtractModel:
 
             Path(tokens_path).parent.mkdir(parents=True, exist_ok=True)
 
+            print(f"Writing OCR results to: {tokens_path}")
+
             with open(tokens_path, "w") as file_stream:
                 json.dump(tokens, file_stream, indent=4)
 
