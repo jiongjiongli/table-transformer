@@ -100,24 +100,14 @@ class TableExtractModel:
         image_file_name = Path(image_file_path).name
 
         if not args.use_ocr:
-            if args.mode == 'recognize':
-                print("Using table ground truth")
-                table_tokens_path = os.path.join(args.table_words_dir, image_file_name.replace(".jpg", "_words.json"))
-                if os.path.exists(table_tokens_path):
-                    with open(table_tokens_path, 'r') as f:
-                        tokens = json.load(f)
-                else:
-                    print(f"{table_tokens_path} does not exist!")
-                    tokens = []
+            print("Using table ground truth")
+            table_tokens_path = os.path.join(args.table_words_dir, image_file_name.replace(".jpg", "_words.json"))
+            if os.path.exists(table_tokens_path):
+                with open(table_tokens_path, 'r') as f:
+                    tokens = json.load(f)
             else:
-                print("Using page ground truth")
-                page_tokens_path = os.path.join(args.page_words_dir, image_file_name.replace("table_0.jpg", "tables.json"))
-                if os.path.exists(page_tokens_path):
-                    with open(page_tokens_path, 'r') as f:
-                        tokens = json.load(f)
-                else:
-                    print(f"{page_tokens_path} does not exist!")
-                    tokens = []
+                print(f"{table_tokens_path} does not exist!")
+                tokens = []
 
         elif args.ocr_words_dir is not None:
             tokens = tesseract_ocr(image_file_path)
