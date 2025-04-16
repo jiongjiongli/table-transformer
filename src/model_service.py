@@ -19,10 +19,14 @@ from inference import TableExtractionPipeline, output_result
 def get_args(input_args):
     parser = argparse.ArgumentParser()
 
+    parser.add_argument('--use_ocr', action='store_true',
+                        help="Whether use OCR service or use ground truth texts")
     parser.add_argument('--image_dir',
                         help="Directory for input images")
     parser.add_argument('--words_dir',
                         help="Directory for input words")
+    parser.add_argument('--ocr_words_dir',
+                        help="Directory for ocr input words")
     parser.add_argument('--out_dir',
                         help="Output directory")
     parser.add_argument('--mode',
@@ -91,11 +95,31 @@ class TableExtractModel:
         img = Image.open(image_file_path)
         print("Image loaded.")
 
-        tokens = tesseract_ocr(image_file_path)
         image_file_name = Path(image_file_path).name
 
-        if not args.words_dir is None:
-            tokens_path = os.path.join(args.words_dir, image_file_name.replace(".jpg", "_words.json"))
+        if args.use_ocr:
+            if args.mode == 'recognize':
+                print("Using table ground truth")
+                table_tokens_path = os.path.join(args.table_words_dir, image_file_name.replace(".jpg", "_words.json"))
+                if os.path.exists(table_tokens_path):
+                    with open(table_tokens_path, 'r') as f:
+                        tokens = json.load(f)
+                else:
+                    print(f"{table_tokens_path} does not exist!")
+                    tokens = []
+            else:
+                print("Using page ground truth")
+                page_tokens_path = os.path.join(args.page_words_dir, image_file_name.replace("table_0.jpg", "tables.json"))
+                if os.path.exists(page_tokens_path):
+                    with open(page_tokens_path, 'r') as f:
+                        tokens = json.load(f)
+                else:
+                    print(f"{page_tokens_path} does not exist!")
+                    tokens = []
+
+        elif args.ocr_words_dir is not None:
+            tokens = tesseract_ocr(image_file_path)
+            tokens_path = os.path.join(args.ocr_words_dir, image_file_name.replace(".jpg", "_words.json"))
 
             Path(tokens_path).parent.mkdir(parents=True, exist_ok=True)
 
