@@ -23,8 +23,10 @@ def get_args(input_args):
                         help="Whether use OCR service or use ground truth texts")
     parser.add_argument('--image_dir',
                         help="Directory for input images")
-    parser.add_argument('--words_dir',
-                        help="Directory for input words")
+    parser.add_argument('--page_words_dir',
+                        help="Directory for page input words")
+    parser.add_argument('--table_words_dir',
+                        help="Directory for table input words")
     parser.add_argument('--ocr_words_dir',
                         help="Directory for ocr input words")
     parser.add_argument('--out_dir',
