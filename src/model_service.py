@@ -99,7 +99,7 @@ class TableExtractModel:
 
         image_file_name = Path(image_file_path).name
 
-        if args.use_ocr:
+        if not args.use_ocr:
             if args.mode == 'recognize':
                 print("Using table ground truth")
                 table_tokens_path = os.path.join(args.table_words_dir, image_file_name.replace(".jpg", "_words.json"))
